@@ -1,6 +1,60 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.db.models import Q
+from django.db.models import Count, Sum, Avg, Max, Min
+from django.db.models import Count
+from .models import Address, Student
 from .models import Book
+
+def task1(request):
+    books = Book.objects.filter(Q(price__lte=80))
+    return render(request, 'bookmodule/task1.html', {'books': books})
+
+def task2(request):
+    books = Book.objects.filter(
+        Q(edition__gt=3) & (Q(title__icontains='co') | Q(author__icontains='co'))
+    )
+    return render(request, 'bookmodule/task2.html', {'books': books})
+
+def task3(request):
+    books = Book.objects.filter(
+        ~Q(edition__gt=3) & ~Q(title__icontains='co') & ~Q(author__icontains='co')
+    )
+    return render(request, 'bookmodule/task3.html', {'books': books})
+
+def task4(request):
+    books = Book.objects.all().order_by('title')
+    return render(request, 'bookmodule/task4.html', {'books': books})
+
+def task5(request):
+    stats = Book.objects.aggregate(
+        total_books=Count('id'),
+        total_price=Sum('price'),
+        avg_price=Avg('price'),
+        max_price=Max('price'),
+        min_price=Min('price')
+    )
+    return render(request, 'bookmodule/task5.html', {'stats': stats})
+
+def student_count_by_city(request):
+    data = Student.objects.values('address__city').annotate(total=Count('id'))
+    return render(request, 'bookmodule/student_count.html', {'data': data})
+
+def add_students(request):
+    # إنشاء المدن
+    a1 = Address.objects.create(city='Riyadh')
+    a2 = Address.objects.create(city='Jeddah')
+    a3 = Address.objects.create(city='Dammam')
+
+    # إضافة طلاب مرتبطين بهذه المدن
+    Student.objects.create(name='Ahmed', age=20, address=a1)
+    Student.objects.create(name='Sara', age=22, address=a1)
+    Student.objects.create(name='Mona', age=21, address=a2)
+    Student.objects.create(name='Ali', age=23, address=a3)
+    Student.objects.create(name='Fahad', age=20, address=a3)
+
+    return HttpResponse("Sample students and addresses added successfully!")
+
 
 def add_books(request):
     Book.objects.create(title='Continuous Delivery', author='J.Humble and D. Farley', edition=1)

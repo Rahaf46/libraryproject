@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render ,get_object_or_404, redirect
 from django.http import HttpResponse
 from django.db.models import Q
 from django.db.models import Count, Sum, Avg, Max, Min
@@ -7,6 +7,9 @@ from .models import Address, Student
 from .models import Book
 from .models import Department
 from .models import Course
+from django.urls import path
+from . import views
+from .forms import BookForm
 
 
 def task1(request):
@@ -115,12 +118,14 @@ def task4_lab9(request):
 
 
 def add_books(request):
-    Book.objects.create(title='Continuous Delivery', author='J.Humble and D. Farley', edition=1)
-    Book.objects.create(title="Django and Python", author="John Doe", price=150, edition=3)
-    Book.objects.create(title="AI and Machine Learning", author="Jane Smith", price=200, edition=2)
-    Book.objects.create(title="Data Science Handbook", author="Alice Brown", price=80, edition=1)
-
-    return HttpResponse("Data added successfully!")
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('list_books_part2')
+    else:
+        form = BookForm()
+    return render(request, 'bookmodule/add_book.html', {'form': form})
 
 def simple_query(request):
     mybooks=Book.objects.filter(title__icontains='and') # <- multiple objects
@@ -139,7 +144,23 @@ def index(request):
     return render(request, "bookmodule/index.html")
 
 def list_books(request):
-    return render(request, 'bookmodule/list_books.html')
+    books = Book.objects.all()
+    return render(request, 'bookmodule/list_books.html', {'books': books})
+
+def edit_book(request, id):
+    book = get_object_or_404(Book, pk=id)
+    form = BookForm(request.POST or None, instance=book)
+    if form.is_valid():
+        form.save()
+        return redirect('list_books_part2')
+    return render(request, 'bookmodule/edit_book.html', {'form': form, 'book': book})
+
+def delete_book(request, id):
+    book = get_object_or_404(Book, pk=id)
+    book.delete()
+    return redirect('list_books_part2')
+
+
 
 def viewbook1(request, bookId):
     return render(request, 'bookmodule/one_book.html')

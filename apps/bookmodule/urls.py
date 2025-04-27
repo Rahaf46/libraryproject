@@ -3,7 +3,6 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='books.index'),
-    path('list/', views.list_books, name='books.list_books'),
     path('book/<int:bookId>/', views.viewbook1, name='books.view_one_book'),
     path('about/', views.about_us, name='books.aboutus'),
     path('html5/links/', views.html5_links, name='html5_links'), 
@@ -11,7 +10,6 @@ urlpatterns = [
     path('html5/listing/', views.listing_page, name='html5_listing'),
     path('html5/tables/', views.tables_page, name='html5_tables'),
     path("search/", views.search_books, name="search_books"),
-    path("add_books/", views.add_books, name="add_books"),
     path("simple/query", views.simple_query, name="simple_query"),
     path("complex/query", views.complex_query, name="complex_query"),
     path('lab8/task1/', views.task1, name='task1'),
@@ -25,6 +23,14 @@ urlpatterns = [
     path('lab9/task2/', views.task2_lab9, name='lab9-task2'),
     path('lab9/task3/', views.task3_lab9, name='lab9-task3'),
     path('lab9/task4/', views.task4_lab9, name='lab9-task4'),
+    path('lab10_part1/listbooks/', views.list_books, name='list_books'),
+    path('lab10_part1/add_books/', views.add_books, name='add_books'),
+    path('lab10_part1/editbook/<int:id>', views.edit_book, name='edit_book'),
+    path('lab10_part1/deletebook/<int:id>', views.delete_book, name='delete_book'),
+    path('lab10_part2/listbooks/', views.list_books, name='list_books_part2'),
+    path('lab10_part2/addbooks/', views.add_books, name='add_books_part2'),
+    path('lab10_part2/editbook/<int:id>/', views.edit_book, name='edit_book_part2'),
+    path('lab10_part2/deletebook/<int:id>/', views.delete_book, name='delete_book_part2'),
 
 
 

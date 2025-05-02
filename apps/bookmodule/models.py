@@ -7,10 +7,11 @@ class Book(models.Model):
     edition = models.SmallIntegerField(default=1)
 
 class Address(models.Model):
-    city = models.CharField(max_length=100)
+    street = models.CharField(max_length=100)
+    city = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.city
+        return f"{self.street}, {self.city}"
 
 class Card(models.Model):
     card_number = models.IntegerField(unique=True)
@@ -35,10 +36,29 @@ class Student(models.Model):
     name = models.CharField(max_length=100)
     age = models.IntegerField()
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
-    card = models.OneToOneField(Card, on_delete=models.PROTECT, null=True, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
-    course = models.ManyToManyField(Course)
+
+    def __str__(self):
+        return self.name
+    
+class Address2(models.Model):
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.street}, {self.city}"
+
+class Student2(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.IntegerField()
+    addresses = models.ManyToManyField(Address2)
 
     def __str__(self):
         return self.name
 
+class BookCover(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    image = models.ImageField(upload_to='book_covers/')
+
+    def __str__(self):
+        return self.title

@@ -1,6 +1,15 @@
 # apps/bookmodule/forms.py
 from django import forms
 from .models import Book
+from .models import Student, Address
+from .models import Student2, Address2
+from .models import BookCover
+
+class BookCoverForm(forms.ModelForm):
+    class Meta:
+        model = BookCover
+        fields = ['title', 'description', 'image']
+
 
 class BookForm(forms.ModelForm):
     class Meta:
@@ -16,3 +25,29 @@ class BookForm(forms.ModelForm):
             'author': forms.TextInput(attrs={'placeholder': 'Enter author'}),
             'price': forms.NumberInput(attrs={'step': '0.01', 'placeholder': 'Enter price'}),
         }
+
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = ['street', 'city']
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ['name', 'age', 'address']
+
+class Address2Form(forms.ModelForm):
+    class Meta:
+        model = Address2
+        fields = ['street', 'city']
+
+class Student2Form(forms.ModelForm):
+    addresses = forms.ModelMultipleChoiceField(
+        queryset=Address2.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+
+    class Meta:
+        model = Student2
+        fields = ['name', 'age', 'addresses']

@@ -10,6 +10,103 @@ from .models import Course
 from django.urls import path
 from . import views
 from .forms import BookForm
+from .forms import StudentForm, AddressForm
+from .forms import Student2Form, Address2Form
+from .models import Student2 
+from .forms import BookCoverForm
+
+def add_book_cover(request):
+    if request.method == 'POST':
+        form = BookCoverForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('list_book_covers')
+    else:
+        form = BookCoverForm()
+    return render(request, 'bookmodule/add_book_cover.html', {'form': form})
+
+def list_book_covers(request):
+    from .models import BookCover
+    covers = BookCover.objects.all()
+    return render(request, 'bookmodule/list_book_covers.html', {'covers': covers})
+
+def list_students2(request):
+    students = Student2.objects.all()
+    return render(request, 'bookmodule/list_students2.html', {'students': students})
+
+def add_student2(request):
+    if request.method == 'POST':
+        form = Student2Form(request.POST)
+        if form.is_valid():
+            student = form.save(commit=False)
+            student.save()
+            form.save_m2m()  # هذا مهم لحفظ العلاقة many-to-many
+            return redirect('list_students2')
+    else:
+        form = Student2Form()
+    return render(request, 'bookmodule/add_student2.html', {'form': form})
+
+
+
+def student_list(request):
+    students = Student.objects.select_related('address').all()
+    return render(request, 'bookmodule/student_list.html', {'students': students})
+
+def student_add(request):
+    if request.method == 'POST':
+        address_form = AddressForm(request.POST)
+        student_form = StudentForm(request.POST)
+        if address_form.is_valid() and student_form.is_valid():
+            address = address_form.save()
+            student = student_form.save(commit=False)
+            student.address = address
+            student.save()
+            return redirect('student_list')
+    else:
+        address_form = AddressForm()
+        student_form = StudentForm()
+    return render(request, 'bookmodule/student_form.html', {'address_form': address_form, 'student_form': student_form})
+
+def student_update(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    address = student.address
+    if request.method == 'POST':
+        student_form = StudentForm(request.POST, instance=student)
+        address_form = AddressForm(request.POST, instance=address)
+        if student_form.is_valid() and address_form.is_valid():
+            address_form.save()
+            student_form.save()
+            return redirect('student_list')
+    else:
+        student_form = StudentForm(instance=student)
+        address_form = AddressForm(instance=address)
+    return render(request, 'bookmodule/student_form.html', {'student_form': student_form, 'address_form': address_form})
+
+def student_delete(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    student.address.delete()  # Delete address first
+    student.delete()
+    return redirect('student_list')
+
+def add_address(request):
+    if request.method == 'POST':
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('add_address')
+    else:
+        form = AddressForm()
+    return render(request, 'bookmodule/add_address.html', {'form': form})
+
+def add_address2(request):
+    if request.method == 'POST':
+        form = Address2Form(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('add_address2')
+    else:
+        form = Address2Form()
+    return render(request, 'bookmodule/add_address2.html', {'form': form})
 
 
 def task1(request):
@@ -45,50 +142,6 @@ def task5(request):
 def student_count_by_city(request):
     data = Student.objects.values('address__city').annotate(total=Count('id'))
     return render(request, 'bookmodule/student_count.html', {'data': data})
-
-def add_students(request):
-    # حذف البيانات السابقة لتجنب التكرار
-    Student.objects.all().delete()
-    Address.objects.all().delete()
-    Department.objects.all().delete()
-    Course.objects.all().delete()
-
-    # إنشاء الأقسام
-    dep1, _ = Department.objects.get_or_create(name="Computer Science")
-    dep2, _ = Department.objects.get_or_create(name="Mechanical Engineering")
-    dep3, _ = Department.objects.get_or_create(name="Electrical Engineering")
-
-    # إنشاء المدن
-    a1, _ = Address.objects.get_or_create(city='Riyadh')
-    a2, _ = Address.objects.get_or_create(city='Jeddah')
-    a3, _ = Address.objects.get_or_create(city='Dammam')
-
-    # إنشاء كورسات
-    c1 = Course.objects.create(title="Data Structures", code=101)
-    c2 = Course.objects.create(title="Thermodynamics", code=102)
-    c3 = Course.objects.create(title="Circuits", code=103)
-    c4 = Course.objects.create(title="Algorithms", code=104)
-
-    # إنشاء الطلاب وربطهم بالأقسام والعناوين والكورسات
-    students_data = [
-        ('Ahmed', 20, a1, dep1, [c1, c4]),
-        ('Sara', 22, a1, dep1, [c1]),
-        ('Mona', 21, a2, dep2, [c2]),
-        ('Ali', 23, a3, dep3, [c3]),
-        ('Fahad', 20, a3, dep1, [c1, c3]),
-    ]
-
-    for name, age, address, department, courses in students_data:
-        student, created = Student.objects.get_or_create(
-            name=name,
-            age=age,
-            address=address,
-            department=department
-        )
-        student.course.set(courses)  # ربط الطالب بالكورسات
-
-    return HttpResponse("Sample students, departments, courses, and addresses added successfully after removing duplicates!")
-
 
 def task1_lab9(request):
     data = Department.objects.annotate(student_count=Count('student'))
